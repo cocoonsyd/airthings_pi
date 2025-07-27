@@ -1,9 +1,11 @@
 import sqlite3
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 
 DB_NAME = "airthings.db"
+# Path to the built React app
+STATIC_FOLDER = 'frontend/dist'
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path='')
 
 def dict_factory(cursor, row):
     """Converts database rows into dictionaries."""
@@ -16,16 +18,22 @@ def get_readings():
     conn = sqlite3.connect(DB_NAME)
     conn.row_factory = dict_factory
     cursor = conn.cursor()
-    
-    # Fetch all readings, ordered by the most recent timestamp first
     readings = cursor.execute("SELECT * FROM readings ORDER BY timestamp DESC").fetchall()
-    
     conn.close()
-    
     return jsonify(readings)
 
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    """
+    Serves the React application.
+    This handles routing by sending the index.html for any path not recognized by the API.
+    """
+    if path != "" and path in app.static_folder:
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
 if __name__ == '__main__':
-    # Note: This is a development server. For deployment on the Pi,
-    # we will use a more robust server like Gunicorn.
-    # The 'host="0.0.0.0"' makes the server accessible from any device on your network.
+    # This part is for development only. In production, Gunicorn runs the 'app' object directly.
     app.run(host="0.0.0.0", port=5000, debug=True)
