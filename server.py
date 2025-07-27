@@ -2,9 +2,13 @@ import os
 import sqlite3
 from flask import Flask, jsonify, send_from_directory
 
-DB_NAME = "airthings.db"
-# Path to the built React app
-STATIC_FOLDER = 'frontend/dist'
+# --- The Key Change is Here ---
+# Get the absolute path of the directory where this script is located.
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+# Define the path to the built React app and the database relative to this script's location.
+STATIC_FOLDER = os.path.join(BASE_DIR, 'frontend', 'dist')
+DB_NAME = os.path.join(BASE_DIR, "airthings.db")
+# --- End of Key Change ---
 
 app = Flask(__name__, static_folder=STATIC_FOLDER)
 
