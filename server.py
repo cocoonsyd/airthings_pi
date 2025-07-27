@@ -1,3 +1,4 @@
+import os
 import sqlite3
 from flask import Flask, jsonify, send_from_directory
 
@@ -5,7 +6,7 @@ DB_NAME = "airthings.db"
 # Path to the built React app
 STATIC_FOLDER = 'frontend/dist'
 
-app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path='')
+app = Flask(__name__, static_folder=STATIC_FOLDER)
 
 def dict_factory(cursor, row):
     """Converts database rows into dictionaries."""
@@ -29,8 +30,10 @@ def serve(path):
     Serves the React application.
     This handles routing by sending the index.html for any path not recognized by the API.
     """
-    if path != "" and path in app.static_folder:
+    # If the requested path points to an existing file in the static folder, serve it.
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
+    # Otherwise, serve the main index.html (for the React router to handle).
     else:
         return send_from_directory(app.static_folder, 'index.html')
 
